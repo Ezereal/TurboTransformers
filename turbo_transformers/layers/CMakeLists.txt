@@ -21,6 +21,8 @@ add_library(tt_layers OBJECT
         sequence_pool.cpp
         bert_pooler.cpp
         prepare_bert_masks.cpp
+        albert_feedforward.cpp
+        albert_postprocessor.cpp
         multi_headed_attention.cpp
         positionwise_ffn.cpp
         )

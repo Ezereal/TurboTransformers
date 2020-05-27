@@ -18,6 +18,8 @@
 #include "turbo_transformers/core/config.h"
 #include "turbo_transformers/core/profiler.h"
 #include "turbo_transformers/core/tensor.h"
+#include "turbo_transformers/layers/albert_feedforward.h"
+#include "turbo_transformers/layers/albert_postprocessor.h"
 #include "turbo_transformers/layers/bert_attention.h"
 #include "turbo_transformers/layers/bert_embedding.h"
 #include "turbo_transformers/layers/bert_intermediate.h"
@@ -70,6 +72,7 @@ PYBIND11_MODULE(turbo_transformers_cxx, m) {
   m.def("enable_perf", &core::EnableGperf);
   m.def("disable_perf", &core::DisableGperf);
   m.def("set_num_threads", &core::SetNumThreads);
+
 
   py::class_<core::Tensor>(m, "Tensor")
       .def_static("from_dlpack",
@@ -184,6 +187,27 @@ PYBIND11_MODULE(turbo_transformers_cxx, m) {
   py::class_<layers::PrepareBertMasks>(m, "PrepareBertMasks")
       .def(py::init())
       .def("__call__", &layers::PrepareBertMasks::operator());
+
+  py::class_<layers::AlbertFeedforward>(m, "AlbertFeedforward")
+      .def(py::init([](core::Tensor &dense_weight, core::Tensor &dense_bias,
+                       core::Tensor &dense_output_weight,
+                       core::Tensor &dense_output_bias,
+                       core::Tensor &layer_norm_weight,
+                       core::Tensor &layer_norm_bias) -> layers::AlbertFeedforward * {
+        return new layers::AlbertFeedforward(
+            std::move(dense_weight), std::move(dense_bias),
+            std::move(dense_output_weight), std::move(dense_output_bias),
+            std::move(layer_norm_weight), std::move(layer_norm_bias));
+      }))
+      .def("__call__", &layers::AlbertFeedforward::operator());
+
+  py::class_<layers::AlbertPostprocessor>(m, "AlbertPostprocessor")
+      .def(py::init([](core::Tensor &dense_weight,
+                       core::Tensor &dense_bias) -> layers::AlbertPostprocessor * {
+        return new layers::AlbertPostprocessor(
+            std::move(dense_weight), std::move(dense_bias));
+      }))
+      .def("__call__", &layers::AlbertPostprocessor::operator());
 
   py::class_<layers::PositionwiseFeedForward>(m, "PositionwiseFeedForward")
       .def(py::init([](core::Tensor &dense_weight_1, core::Tensor &dense_bias_1,
